@@ -168,7 +168,7 @@ def train_model(df, target):
     df = df.fillna("")
     
     # 2. Combine text features
-    df['combined_text'] = df[FEATURE_COLS].apply(lambda x: ' '.join(x.astype(str)), axis=1)
+    df['combined_text'] = df[FEATURE_COLS].apply(lambda x: ' [SEP] '.join(x.astype(str)), axis=1)
     
     X_text = df['combined_text'].tolist()
     y = df[target].astype(int)
