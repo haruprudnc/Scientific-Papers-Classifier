@@ -1,38 +1,31 @@
+# Standard Library
 import argparse
 import re
-import pandas as pd
-import numpy as np
-import joblib
 
+# Third-Party Libraries
+import joblib
 import nltk
+import numpy as np
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report
 from sentence_transformers import SentenceTransformer
-from xgboost import XGBRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, VotingClassifier
 
-import pandas as pd
-import numpy as np
-import joblib
-import os
-
-# --- Classifiers ---
-from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Normalizer, StandardScaler
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, classification_report
 
-# Assuming these are your local custom modules
-from utils.terminal import get_terminal_length
-from utils.color import Color
-from utils.cli_progress_bar import cliProgressBar
+# Local Custom Modules
 from core.doi_org import DoiOrg
 from core.openalex_org import OpenAlex
+from utils.cli_progress_bar import cliProgressBar
+from utils.color import Color
+from utils.terminal import get_terminal_length
+
 
 # File Paths
 TRAIN_SOURCE_PATH = "src/Stage_1_publcitrain.csv"
@@ -46,6 +39,7 @@ TEST_PREPROCESS_PATH = "./modified_csv/test_preprocess_data.csv"
 
 
 MODEL_PATH = "./models/model.pkl"
+SUBMISSION_PATH = "./submissions/submission.csv"
 
 
 SAVE_COLS_AFTER_SCRAPE      = ["id", "title", "title_doiorg", "title_openalex", "authors", "authors_doiorg", "authors_openalex", "authors_count_doiorg", "authors_count_openalex", "doi", "venue", "year", "abstract_doiorg", "abstract_openalex", "primary_topic", "keywords", "concepts"]
@@ -242,9 +236,9 @@ def train_model():
     print(f"Initializing base models for Sklearn Voting Classifier...")
     
     xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
-    rf_model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-    gb_model = GradientBoostingClassifier(n_estimators=100, random_state=42)
-    lr_model = LogisticRegression(max_iter=1000, random_state=42, n_jobs=-1)
+    rf_model = RandomForestClassifier(n_estimators=1000, random_state=42, n_jobs=-1)
+    gb_model = GradientBoostingClassifier(n_estimators=1000, random_state=42)
+    lr_model = LogisticRegression(max_iter=10000, random_state=42, n_jobs=-1)
     svm_model = SVC(probability=True, random_state=42) # probability=True required for soft voting
 
     sklearn_voter = VotingClassifier(
@@ -279,7 +273,7 @@ def train_model():
         'embedder_name': 'allenai/specter2_base'
     }, MODEL_PATH)
     
-    print(f"Model successfully saved to sklearn_ensemble_model.pkl")
+    print(f"Model successfully saved to {MODEL_PATH}")
 
 
 # .-. ======================================== PREDICTION ======================================== .-. #
@@ -321,8 +315,9 @@ def predict():
         'id': df['id'],
         'Label': predictions
     })
-    submission.to_csv('submission.csv', index=False)
-    print(f"{Color.green}{Color.bold}Predictions successfully saved to submission.csv{Color.reset}")
+    submission.to_csv(SUBMISSION_PATH, index=False)
+    print(f"{Color.green}{Color.bold}Predictions successfully saved to {SUBMISSION_PATH}{Color.reset}")
+
 
 # .-. ======================================== MAIN PROGRAM ======================================== .-. #
 if __name__ == "__main__":
@@ -373,7 +368,7 @@ if __name__ == "__main__":
         print(f"{Color.green}{Color.bold}{"    PREPROCESSING SUCCESS    ".center(get_terminal_length(), "=")}{Color.reset}")
 
 
-# ^^ ======================================== TRAINING MODEL ======================================== ^^ #
+    # ^^ ======================================== TRAINING MODEL ======================================== ^^ #
     if args.train:
         train_model()
         print(f"{Color.green}{Color.bold}{'    TRAINING SUCCESS    '.center(get_terminal_length(), '=')}{Color.reset}")
