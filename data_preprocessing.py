@@ -11,7 +11,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sentence_transformers import SentenceTransformer
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, VotingClassifier
-
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
@@ -144,7 +144,7 @@ def preprocss_authors(string: str):
 
 def preprocess_authors_count(count):
     if count <= 0:
-        return "no_author"
+        return "noauthor"
     if count == 1:
         return "single_author"
     if count <= 3:
@@ -166,27 +166,27 @@ def preprocess_year(year):
 
 def preprocess_data(df: pd.DataFrame, target = None):
     # >-< --------------------------------- HANDLING TITLE --------------------------------- >-< #
-    df['title'] = df['title'].fillna(df['title_doiorg'].fillna(df['title_openalex']))
+    df['title'] = df['title'].fillna(df['title_doiorg'].fillna(df['title_openalex'].fillna("notitle")))
     df['title'] = df['title'].apply(preprocess_title)
 
     # >-< --------------------------------- HANDLING ABSTRACTS --------------------------------- >-< #
-    df['abstracts'] = df['abstract_openalex'].fillna(df['abstract_doiorg'])
+    df['abstracts'] = df['abstract_openalex'].fillna(df['abstract_doiorg'].fillna("noabstract"))
     df['abstracts'] = df['abstracts'].apply(preprocess_abstracts)
 
     # >-< --------------------------------- HANDLING AUTHORS --------------------------------- >-< #
-    df['authors'] = df['authors'].fillna(df['authors_doiorg'].fillna(df['authors_openalex']))
+    df['authors'] = df['authors'].fillna(df['authors_doiorg'].fillna(df['authors_openalex'].fillna("noauthor")))
     df['authors'] = df['authors'].apply(preprocss_authors)
 
     # >-< --------------------------------- HANDLING AUTHORS COUNT --------------------------------- >-< #
-    df['authors_count_numberic'] = df['authors_count_doiorg'].fillna(df['authors_count_openalex'])
+    df['authors_count_numberic'] = df['authors_count_doiorg'].fillna(df['authors_count_openalex'].fillna(0))
     df['authors_count_token'] = df['authors_count_numberic'].apply(preprocess_authors_count)
 
     # >-< --------------------------------- HANDLING YEAR TOKEN --------------------------------- >-< #
     df['year_token'] = df['year'].apply(preprocess_year)
 
     # >-< --------------------------------- HANDLING TOPIC & KEYWORDS --------------------------------- >-< #
-    df['primary_topic'] = df['primary_topic'].apply(preprocess_abstracts)
-    df['keywords'] = df['keywords'].apply(preprocess_abstracts)
+    df['primary_topic'] = df['primary_topic'].fillna("notopic").apply(preprocess_abstracts)
+    df['keywords'] = df['keywords'].fillna("nokeywords").apply(preprocess_abstracts)
 
     # >-< --------------------------------- SCALING YEAR & AUTHOR COUNT --------------------------------- >-< #
     scaler = StandardScaler()
