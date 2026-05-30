@@ -41,7 +41,7 @@ def train_model_specter_classifier(train_path, model_path):
     text_embeddings = embedder.encode(df['combined_text'].tolist(), show_progress_bar=True)
     
     # ^^ TFIDF EMBEDDING
-    tfidf = TfidfVectorizer(max_features=500)
+    tfidf = TfidfVectorizer(max_features=20)
     tfidf_features = tfidf.fit_transform(df['venue']).toarray()
 
     # ^^ SCALING NUMBERICAL
@@ -54,7 +54,7 @@ def train_model_specter_classifier(train_path, model_path):
     y = df['Label'].values
 
     X_train_sk, X_val_sk, y_train, y_val = train_test_split(
-        X_sklearn, y, test_size=0.8, random_state=42, stratify=y
+        X_sklearn, y, test_size=0.01, random_state=42, stratify=y
     )
 
     # ==========================================
