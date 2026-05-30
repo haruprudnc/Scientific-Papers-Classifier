@@ -35,7 +35,7 @@ The repository is organized into the following directories and files:
 
 3.  Install the necessary dependencies. (Note: You may want to create a `requirements.txt` file, but standard requirements generally include `pandas`, `requests`, `scikit-learn`, and `numpy`).
     ```bash
-    pip install pandas requests scikit-learn numpy
+    pip install -r requirements.txt
     ```
 
 ## Usage
@@ -44,4 +44,11 @@ The repository is organized into the following directories and files:
 To clean the source data and fetch necessary metadata from DOI/OpenAlex, run the preprocessing script. This will read the files from the `src/` directory and output the cleaned datasets into the `modified_csv/` directory.
 
 ```bash
-python data_preprocessing.py
+python main_s2_v2.py <add_your_actions_here>
+```
+Actions:
+- -pc: 'precrawl'
+- -c: 'crawl'
+- -p: 'preprocess'
+- -t: 'train'
+- -s: 'submit'
